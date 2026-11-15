@@ -33,6 +33,7 @@ import {
 } from './storage.js';
 import { db } from './db.js';
 import { getVibrantColorFromImage } from './vibrant-color.js';
+import { TRACKS_API_BASE_URL } from './tracks-api.js';
 import { syncManager } from './accounts/pocketbase.js';
 import { authManager } from './accounts/auth.js';
 import { AUTH_BASE_URL } from './accounts/config.js';
@@ -2676,7 +2677,7 @@ export class UIRenderer {
         const sidebarText = document.getElementById('sidebar-donate-goal-text');
 
         try {
-            const response = await fetch('https://tracks.monochrome.st/goal');
+            const response = await fetch(`${TRACKS_API_BASE_URL}/goal`);
             const data = await response.json();
             let percentage = 0;
 

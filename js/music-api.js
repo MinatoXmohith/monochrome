@@ -9,7 +9,12 @@ import {
     normalizeAppleArtist,
     normalizeAppleSearchResults,
 } from './apple-music-api.js';
-import { TracksStreamerAPI, tracksStreamerAPI, normalizeTracksSearchResults } from './tracks-api.js';
+import {
+    TracksStreamerAPI,
+    tracksStreamerAPI,
+    normalizeTracksSearchResults,
+    TRACKS_API_BASE_URL,
+} from './tracks-api.js';
 import { getCommunityPlaylist } from './community-playlists.js';
 
 /**

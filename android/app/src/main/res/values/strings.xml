@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MKPlayer</string>
+    <string name="title_activity_main">MKPlayer</string>
+    <string name="package_name">com.mkplayer.app</string>
+    <string name="custom_url_scheme">com.mkplayer.app</string>
+</resources>

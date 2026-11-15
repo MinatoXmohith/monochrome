@@ -29,3 +29,8 @@ bun.lockb,
 bun.lock
 .wrangler
 .opencode
+.vercel
+.env*
+
+# Built Android packages
+*.apk
