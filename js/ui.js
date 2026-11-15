@@ -339,13 +339,6 @@ export class UIRenderer {
             }
         });
 
-        window.addEventListener('refresh-home-editors-picks', async () => {
-            const container = document.getElementById('home-editors-picks');
-            if (container && container.children.length > 0) {
-                await this.renderHomeEditorsPicks(true, 'home-editors-picks');
-            }
-        });
-
         this.loadDonateGoal();
     }
 
@@ -1257,7 +1250,7 @@ export class UIRenderer {
 
         const root = document.documentElement;
         const theme = root.getAttribute('data-theme');
-        const isLightMode = theme === 'white';
+        const isLightMode = theme === 'white' || theme === 'glass-light';
 
         let hex = color.replace('#', '');
         // Handle shorthand hex
@@ -3044,18 +3037,9 @@ export class UIRenderer {
 
             const hasActivity = history.length > 0 || favorites.length > 0 || playlists.length > 0;
 
-            const editorsPicksTab = document.querySelector('.home-tab[data-tab="editors-picks"]');
-            if (editorsPicksTab) {
-                editorsPicksTab.style.display = homePageSettings.shouldShowEditorsPicks() ? '' : 'none';
-            }
-
-            if (!hasActivity) {
-                if (welcomeEl) welcomeEl.style.display = 'block';
-                if (contentEl) contentEl.style.display = 'none';
-                return;
-            }
-
-            if (welcomeEl) welcomeEl.style.display = 'none';
+            // Always show suggested songs, albums and artists. New listeners get
+            // suggestions seeded from the curated picks (see getStarterSeeds).
+            if (welcomeEl) welcomeEl.style.display = hasActivity ? 'none' : 'block';
             if (contentEl) contentEl.style.display = 'block';
 
             const refreshSongsBtn = document.getElementById('refresh-songs-btn');
@@ -3111,17 +3095,40 @@ export class UIRenderer {
                     view.classList.add('active');
                 }
 
-                if (tab.dataset.tab === 'explore') {
-                    await this.renderExplorePage();
-                }
-                if (tab.dataset.tab === 'editors-picks') {
-                    await this.renderHomeEditorsPicks(false, 'home-editors-picks');
-                }
-                if (tab.dataset.tab === 'aoty') {
-                    await this.renderAOTYPage();
+                if (tab.dataset.tab === 'mk-liked') {
+                    await this.renderMkLikedTab();
                 }
             });
         }
+    }
+
+    async renderMkLikedTab() {
+        const container = document.getElementById('mk-liked-tracks');
+        const emptyEl = document.getElementById('mk-liked-empty');
+        const shuffleBtn = document.getElementById('mk-liked-shuffle-btn');
+        if (!container) return;
+
+        // Re-read every time the tab opens so newly liked songs show up.
+        const likedTracks = await db.getFavorites('track');
+        const hasTracks = likedTracks.length > 0;
+
+        if (emptyEl) emptyEl.style.display = hasTracks ? 'none' : 'block';
+        if (shuffleBtn) {
+            shuffleBtn.style.display = hasTracks ? 'flex' : 'none';
+            shuffleBtn.onclick = async () => {
+                const shuffled = [...likedTracks];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                this.player.setQueue(shuffled, 0);
+                document.getElementById('shuffle-btn')?.classList.remove('active');
+                await this.player.playTrackFromQueue();
+            };
+        }
+
+        // Clicking a row queues the whole list (handled globally for .track-list).
+        await this.renderListWithTracks(container, likedTracks, true, false, false, true);
     }
 
     async renderExplorePage() {
@@ -4340,7 +4347,57 @@ export class UIRenderer {
             return true;
         });
 
+        if (seeds.length === 0) return this.getStarterSeeds();
+
         return shuffle(seeds);
+    }
+
+    /**
+     * Seeds for a new listener with no history, likes or playlists: tracks from
+     * a few random albums in the bundled curated list, so Home can still suggest
+     * songs, albums and artists. Cached for the session.
+     */
+    async getStarterSeeds() {
+        if (this.starterSeeds?.length) return this.starterSeeds;
+
+        try {
+            const response = await fetch('/editors-picks.json');
+            if (!response.ok) return [];
+            const picks = (await response.json()).filter((p) => p.type === 'album' && p.id && p.artist?.id);
+            const shuffled = [...picks].sort(() => Math.random() - 0.5);
+
+            const seeds = [];
+            // Some catalog albums may be unavailable; try a few until we have seeds.
+            for (const pick of shuffled.slice(0, 6)) {
+                try {
+                    const { tracks } = await this.api.getAlbum(pick.id);
+                    const track = tracks?.find((t) => t?.id);
+                    if (track) {
+                        seeds.push({
+                            ...track,
+                            album: track.album?.id ? track.album : { id: pick.id, title: pick.title },
+                            artist: track.artist?.id ? track.artist : pick.artist,
+                        });
+                    }
+                } catch {
+                    // Skip albums that fail to load.
+                }
+                if (seeds.length >= 3) break;
+            }
+
+            // Albums and artists only need ids, so fall back to the picks themselves.
+            if (seeds.length === 0) {
+                for (const pick of shuffled.slice(0, 3)) {
+                    seeds.push({ album: { id: pick.id, title: pick.title }, artist: pick.artist });
+                }
+            }
+
+            this.starterSeeds = seeds;
+            return seeds;
+        } catch (e) {
+            console.warn('Could not build starter recommendations:', e);
+            return [];
+        }
     }
 
     async renderHomeSongs(forceRefresh = false, providedSeeds = null) {

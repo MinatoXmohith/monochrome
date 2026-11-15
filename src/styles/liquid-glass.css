@@ -1,0 +1,526 @@
+/* stylesheet: Liquid Glass themes ('glass' dark, 'glass-light' light).
+ *
+ * Loaded after modern.css. Every rule is scoped to the two glass themes, so the
+ * existing themes and community themes are untouched.
+ *
+ * Layers, back to front:
+ *   1. #glass-ambient   — full-screen blurred album art + accent glows (set by src/glass.ts)
+ *   2. content          — transparent app shell so the ambient layer shows through
+ *   3. glass chrome     — sidebar, header, player, menus, modals, panels
+ */
+
+/* stylelint-disable no-descending-specificity -- must override the legacy cascade. */
+/* stylelint-disable property-no-vendor-prefix -- Safari before 18 needs -webkit-backdrop-filter. */
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) {
+    --glass-radius: 26px;
+    --glass-radius-sm: 16px;
+    --glass-gap: 12px;
+    --glass-blur: blur(28px) saturate(190%);
+    --glass-blur-strong: blur(40px) saturate(210%);
+    --glass-tint: rgb(var(--highlight-rgb), 0.07);
+    --ease-glass: cubic-bezier(0.32, 0.72, 0, 1);
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --card-radius: var(--radius-lg);
+}
+
+:root[data-theme='glass'] {
+    color-scheme: dark;
+
+    --background: #08080a;
+    --foreground: #f5f5f7;
+    --card: #1c1c1e;
+    --card-foreground: #f5f5f7;
+    --primary: #fa2d48;
+    --primary-foreground: #fff;
+    --secondary: rgb(255 255 255 / 0.1);
+    --secondary-foreground: #f5f5f7;
+    --muted: rgb(255 255 255 / 0.08);
+    --muted-foreground: rgb(235 235 245 / 0.62);
+    --border: rgb(255 255 255 / 0.12);
+    --input: rgb(255 255 255 / 0.08);
+    --ring: #fa2d48;
+    --highlight: #fa2d48;
+    --highlight-rgb: 250, 45, 72;
+    --glass-fill: rgb(30 30 34 / 0.42);
+    --glass-fill-strong: rgb(28 28 32 / 0.62);
+    --glass-stroke: rgb(255 255 255 / 0.16);
+    --glass-specular: rgb(255 255 255 / 0.42);
+    --glass-shade: rgb(0 0 0 / 0.38);
+    --glass-shadow: 0 1px 1px rgb(0 0 0 / 0.2), 0 18px 50px -10px rgb(0 0 0 / 0.55);
+    --glass-hover: rgb(255 255 255 / 0.08);
+    --glass-active: rgb(255 255 255 / 0.14);
+    --glass-ambient-dim: rgb(8 8 10 / 0.4);
+    --chrome-control: rgb(255 255 255 / 0.1);
+    --chrome-control-hover: rgb(255 255 255 / 0.16);
+    --chrome-raised: var(--glass-fill-strong);
+    --chrome-divider: rgb(255 255 255 / 0.09);
+    --chrome-subtle: rgb(255 255 255 / 0.06);
+}
+
+:root[data-theme='glass-light'] {
+    color-scheme: light;
+
+    --background: #f2f2f7;
+    --foreground: #1d1d1f;
+    --card: #fff;
+    --card-foreground: #1d1d1f;
+    --primary: #fa2d48;
+    --primary-foreground: #fff;
+    --secondary: rgb(0 0 0 / 0.06);
+    --secondary-foreground: #1d1d1f;
+    --muted: rgb(0 0 0 / 0.05);
+    --muted-foreground: rgb(60 60 67 / 0.68);
+    --border: rgb(0 0 0 / 0.1);
+    --input: rgb(255 255 255 / 0.6);
+    --ring: #fa2d48;
+    --highlight: #fa2d48;
+    --highlight-rgb: 250, 45, 72;
+    --glass-fill: rgb(255 255 255 / 0.5);
+    --glass-fill-strong: rgb(255 255 255 / 0.72);
+    --glass-stroke: rgb(255 255 255 / 0.7);
+    --glass-specular: rgb(255 255 255 / 0.95);
+    --glass-shade: rgb(0 0 0 / 0.1);
+    --glass-shadow: 0 1px 1px rgb(0 0 0 / 0.04), 0 16px 44px -12px rgb(0 0 0 / 0.22);
+    --glass-hover: rgb(0 0 0 / 0.05);
+    --glass-active: rgb(0 0 0 / 0.08);
+    --glass-ambient-dim: rgb(242 242 247 / 0.5);
+    --chrome-control: rgb(0 0 0 / 0.06);
+    --chrome-control-hover: rgb(0 0 0 / 0.1);
+    --chrome-raised: var(--glass-fill-strong);
+    --chrome-divider: rgb(0 0 0 / 0.08);
+    --chrome-subtle: rgb(0 0 0 / 0.04);
+    --chrome-ring: 0 0 0 1px rgb(0 0 0 / 0.06);
+}
+
+/* ---------- 1. Ambient backdrop ------------------------------------------ */
+
+#glass-ambient {
+    display: none;
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) #glass-ambient {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background: var(--background);
+}
+
+#glass-ambient .glass-ambient-art,
+#glass-ambient .glass-ambient-glow {
+    position: absolute;
+    inset: -20%;
+}
+
+#glass-ambient .glass-ambient-art {
+    background-image: var(--glass-art, none);
+    background-size: cover;
+    background-position: center;
+    filter: blur(90px) saturate(170%);
+    opacity: 0.8;
+    transform: scale(1.1);
+    transition:
+        background-image 0.8s ease,
+        opacity 0.8s ease;
+    animation: glass-drift 38s var(--ease-in-out) infinite alternate;
+}
+
+:root[data-theme='glass-light'] #glass-ambient .glass-ambient-art {
+    opacity: 0.6;
+}
+
+#glass-ambient .glass-ambient-glow {
+    background:
+        radial-gradient(40% 45% at 18% 22%, rgb(var(--highlight-rgb), 0.32), transparent 70%),
+        radial-gradient(38% 40% at 82% 30%, rgb(94 92 230 / 0.22), transparent 70%),
+        radial-gradient(45% 45% at 60% 88%, rgb(48 176 199 / 0.18), transparent 70%);
+    animation: glass-drift 46s var(--ease-in-out) infinite alternate-reverse;
+}
+
+#glass-ambient::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--glass-ambient-dim);
+}
+
+@keyframes glass-drift {
+    from {
+        transform: translate3d(-3%, -2%, 0) scale(1.08) rotate(0deg);
+    }
+
+    to {
+        transform: translate3d(3%, 2%, 0) scale(1.18) rotate(8deg);
+    }
+}
+
+/* ---------- 2. Transparent shell ----------------------------------------- */
+
+:root:is([data-theme='glass'], [data-theme='glass-light']),
+:root:is([data-theme='glass'], [data-theme='glass-light']) body,
+:root:is([data-theme='glass'], [data-theme='glass-light']) .app-container,
+:root:is([data-theme='glass'], [data-theme='glass-light']) .sidebar-nav-bottom {
+    background: transparent;
+}
+
+/* Desktop gets the floating Apple Music layout (inset sidebar, sticky glass
+ * header, floating player pill). Phones keep the app's own mobile layout and
+ * only take on the glass material, see the Mobile section. */
+@media (min-width: 769px) {
+    :root:is([data-theme='glass'], [data-theme='glass-light']) .app-container {
+        padding: var(--glass-gap);
+        gap: var(--glass-gap);
+        grid-template: 'sidebar main' 1fr / var(--sidebar-width) minmax(0, 1fr);
+    }
+
+    :root:is([data-theme='glass'], [data-theme='glass-light']) body.sidebar-collapsed .app-container {
+        grid-template-columns: var(--sidebar-collapsed-width) minmax(0, 1fr);
+    }
+
+    :root:is([data-theme='glass'], [data-theme='glass-light']) .main-content {
+        --glass-content-pad: var(--spacing-xl);
+
+        border-radius: var(--glass-radius);
+        padding: 0 var(--glass-content-pad) calc(var(--player-bar-height-desktop) + 56px) !important;
+    }
+
+    :root:is([data-theme='glass'], [data-theme='glass-light']) .sidebar {
+        position: relative;
+        border-radius: var(--glass-radius);
+        padding: 18px 12px 14px;
+        overflow: hidden;
+    }
+
+    :root:is([data-theme='glass'], [data-theme='glass-light']) .main-header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        width: auto;
+        margin: 0 calc(-1 * var(--glass-content-pad)) 24px;
+        padding: 14px var(--glass-content-pad);
+        border-radius: var(--glass-radius) var(--glass-radius) 0 0;
+    }
+
+    :root:is([data-theme='glass'], [data-theme='glass-light']) .now-playing-bar {
+        --np-inset: calc(var(--sidebar-width) + var(--glass-gap) * 2 + 8px);
+
+        left: var(--np-inset);
+        width: calc(100% - var(--np-inset) - var(--glass-gap) - 8px) !important;
+        bottom: calc(var(--glass-gap) + 8px) !important;
+        height: 76px;
+        padding: 10px 22px 10px 10px;
+        border-radius: var(--radius-full);
+    }
+
+    :root:is([data-theme='glass'], [data-theme='glass-light']) body.sidebar-collapsed .now-playing-bar {
+        --np-inset: calc(var(--sidebar-collapsed-width) + var(--glass-gap) * 2 + 8px);
+    }
+
+    :root:is([data-theme='glass'], [data-theme='glass-light']) .now-playing-bar .cover {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+    }
+}
+
+/* ---------- 3. Glass material -------------------------------------------- */
+
+/* The shared material: tinted translucent fill, backdrop blur, a hairline
+ * stroke, an inner specular rim (top-left light, bottom-right shade), and a
+ * soft drop shadow. */
+:root:is([data-theme='glass'], [data-theme='glass-light'])
+    :is(
+        .sidebar,
+        .now-playing-bar,
+        #context-menu,
+        #sort-menu,
+        #export-playlist-menu,
+        #eq-node-context-menu,
+        #eq-empty-context-menu,
+        .dropdown-menu,
+        .search-history,
+        .modal-content,
+        .side-panel
+    ) {
+    background: linear-gradient(var(--glass-tint), var(--glass-tint)), var(--glass-fill);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-stroke);
+    box-shadow:
+        inset 0 1px 0 0 var(--glass-specular),
+        inset 1px 0 0 0 color-mix(in srgb, var(--glass-specular) 40%, transparent),
+        inset 0 -1px 0 0 var(--glass-shade),
+        var(--glass-shadow);
+}
+
+/* Specular sheen across the top of larger surfaces. */
+:root:is([data-theme='glass'], [data-theme='glass-light']) :is(.sidebar, .now-playing-bar, .modal-content)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+        160deg,
+        color-mix(in srgb, var(--glass-specular) 22%, transparent) 0%,
+        transparent 28%,
+        transparent 72%,
+        color-mix(in srgb, var(--glass-specular) 8%, transparent) 100%
+    );
+    mix-blend-mode: soft-light;
+}
+
+/* Menus and modals get the denser fill so text stays readable over busy art. */
+:root:is([data-theme='glass'], [data-theme='glass-light'])
+    :is(
+        #context-menu,
+        #sort-menu,
+        #export-playlist-menu,
+        #eq-node-context-menu,
+        #eq-empty-context-menu,
+        .dropdown-menu,
+        .search-history,
+        .modal-content,
+        .side-panel
+    ) {
+    background: linear-gradient(var(--glass-tint), var(--glass-tint)), var(--glass-fill-strong);
+    -webkit-backdrop-filter: var(--glass-blur-strong);
+    backdrop-filter: var(--glass-blur-strong);
+    border-radius: var(--glass-radius-sm);
+}
+
+/* ---------- Sidebar: floating inset panel -------------------------------- */
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .sidebar-logo .app-logo g {
+    fill: var(--foreground);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .sidebar-nav .nav-item a {
+    border-radius: 12px;
+    color: var(--foreground);
+    opacity: 0.86;
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .sidebar-nav .nav-item a:hover {
+    background: var(--glass-hover);
+    opacity: 1;
+    transform: none;
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .sidebar-nav .nav-item.active a,
+:root:is([data-theme='glass'], [data-theme='glass-light']) .sidebar-nav .nav-item a.active,
+:root:is([data-theme='glass'], [data-theme='glass-light']) .sidebar-nav .nav-item a[aria-current='page'] {
+    background: var(--glass-active);
+    color: var(--highlight);
+    opacity: 1;
+    box-shadow: inset 0 1px 0 0 color-mix(in srgb, var(--glass-specular) 35%, transparent);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .sidebar-nav .nav-item.active a::before {
+    display: none;
+}
+
+/* ---------- Header: glass on scroll -------------------------------------- */
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .main-header {
+    background: transparent;
+    transition:
+        background-color var(--duration-normal) var(--ease-out),
+        box-shadow var(--duration-normal) var(--ease-out);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) body.glass-scrolled .main-header {
+    background: color-mix(in srgb, var(--glass-fill) 80%, transparent);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    box-shadow: inset 0 -1px 0 0 var(--chrome-divider);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .search-bar input {
+    border-radius: var(--radius-full);
+    background: var(--glass-fill);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-stroke);
+    box-shadow: inset 0 1px 0 0 color-mix(in srgb, var(--glass-specular) 50%, transparent);
+}
+
+/* backdrop-filter makes the input its own stacking layer; keep the icon above it. */
+:root:is([data-theme='glass'], [data-theme='glass-light']) .search-bar .search-icon {
+    z-index: 1;
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) :is(.nav-btn, .hamburger-menu) {
+    border-radius: 50%;
+    background: var(--glass-fill);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-stroke);
+    color: var(--foreground);
+}
+
+/* ---------- Now Playing: floating pill ----------------------------------- */
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .now-playing-bar {
+    overflow: visible;
+    transition:
+        left var(--duration-normal) var(--ease-glass),
+        width var(--duration-normal) var(--ease-glass),
+        transform 0.5s var(--ease-glass);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .now-playing-bar .cover {
+    box-shadow:
+        0 0 0 1px var(--glass-stroke),
+        0 6px 18px rgb(0 0 0 / 0.3);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .player-controls .buttons button {
+    border-radius: 50%;
+    color: var(--foreground);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .player-controls .buttons button:hover {
+    background: var(--glass-hover);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .player-controls .buttons .play-pause-btn {
+    background: var(--foreground);
+    color: var(--background);
+    box-shadow:
+        inset 0 1px 0 0 rgb(255 255 255 / 0.35),
+        0 4px 14px rgb(0 0 0 / 0.25);
+}
+
+/* ---------- Content surfaces --------------------------------------------- */
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .card {
+    background: transparent;
+    border-radius: var(--glass-radius-sm);
+    transition:
+        background-color var(--duration-fast) var(--ease-out),
+        transform 0.4s var(--ease-glass);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .card:hover {
+    background: var(--glass-hover);
+    transform: translateY(-2px);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) :is(.card-image, .card img) {
+    border-radius: 14px;
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .track-item {
+    border-radius: 12px;
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .track-item:hover {
+    background: var(--glass-hover);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .settings-group,
+:root:is([data-theme='glass'], [data-theme='glass-light']) .donate-goal-card {
+    background: var(--glass-fill);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-stroke);
+    border-radius: var(--radius-xl);
+    box-shadow: inset 0 1px 0 0 color-mix(in srgb, var(--glass-specular) 45%, transparent);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light'])
+    :is(.home-header-tabs, .search-tabs, .library-tabs, .settings-tabs) {
+    padding: 4px;
+    border-radius: var(--radius-full);
+    background: var(--glass-fill);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-stroke);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .modal {
+    background: rgb(0 0 0 / 0.3);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .modal-content {
+    border-radius: var(--glass-radius);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) .side-panel {
+    border-radius: var(--glass-radius) 0 0 var(--glass-radius);
+}
+
+:root:is([data-theme='glass'], [data-theme='glass-light']) #page-background {
+    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.7) 0%, transparent 100%);
+}
+
+/* ---------- Optional refraction (Chromium only, set by src/glass.ts) ----- */
+
+/* Chromium can run an SVG displacement filter as a backdrop filter, which bends
+ * what is behind the glass near its edges. Other engines keep the blur only. */
+:root.glass-refraction:is([data-theme='glass'], [data-theme='glass-light']) .now-playing-bar {
+    -webkit-backdrop-filter: url('#glass-refract') var(--glass-blur);
+    backdrop-filter: url('#glass-refract') var(--glass-blur);
+}
+
+/* ---------- Mobile ------------------------------------------------------- */
+
+/* The app's own mobile layout stays; glass only changes the material. */
+@media (max-width: 768px) {
+    :root:is([data-theme='glass'], [data-theme='glass-light']) .sidebar {
+        border-radius: 0 var(--glass-radius) var(--glass-radius) 0;
+        background: var(--glass-fill-strong);
+    }
+
+    :root:is([data-theme='glass'], [data-theme='glass-light']) .now-playing-bar {
+        border-radius: 24px;
+    }
+
+    :root:is([data-theme='glass'], [data-theme='glass-light']) .now-playing-bar .cover {
+        border-radius: 10px;
+    }
+}
+
+/* ---------- Accessibility & performance fallbacks ------------------------ */
+
+@media (prefers-reduced-transparency: reduce) {
+    :root:is([data-theme='glass'], [data-theme='glass-light']) {
+        --glass-fill: var(--card);
+        --glass-fill-strong: var(--card);
+        --glass-tint: transparent;
+    }
+
+    :root:is([data-theme='glass'], [data-theme='glass-light']) #glass-ambient .glass-ambient-art {
+        opacity: 0.18;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #glass-ambient .glass-ambient-art,
+    #glass-ambient .glass-ambient-glow {
+        animation: none;
+    }
+}
+
+/* The app's existing "disable blur effects" setting turns glass into solid
+ * frosted panels and stops the ambient animation. */
+:root.disable-blur-effects:is([data-theme='glass'], [data-theme='glass-light']) {
+    --glass-fill: color-mix(in srgb, var(--card) 94%, transparent);
+    --glass-fill-strong: var(--card);
+}
+
+:root.disable-blur-effects #glass-ambient .glass-ambient-art {
+    display: none;
+}
+
+:root.disable-blur-effects #glass-ambient .glass-ambient-glow {
+    animation: none;
+}
