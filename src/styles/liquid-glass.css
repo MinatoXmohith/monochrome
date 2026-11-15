@@ -296,10 +296,6 @@
 
 /* ---------- Sidebar: floating inset panel -------------------------------- */
 
-:root:is([data-theme='glass'], [data-theme='glass-light']) .sidebar-logo .app-logo g {
-    fill: var(--foreground);
-}
-
 :root:is([data-theme='glass'], [data-theme='glass-light']) .sidebar-nav .nav-item a {
     border-radius: 12px;
     color: var(--foreground);
