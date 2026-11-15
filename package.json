@@ -37,6 +37,7 @@
     },
     "homepage": "https://github.com/monochrome-music/monochrome#readme",
     "devDependencies": {
+        "@capacitor/cli": "^8.6.2",
         "@lhci/cli": "^0.14.0",
         "@types/node": "^25.3.5",
         "@vitest/browser-playwright": "^4.1.2",

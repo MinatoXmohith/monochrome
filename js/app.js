@@ -57,6 +57,7 @@ import {
     SVG_RESET,
 } from './icons.js';
 import { HiFiClient } from './HiFi.js';
+import { TRACKS_API_BASE_URL } from './tracks-api.js';
 import '../src/styles/liquid-glass.css';
 import { initLiquidGlass } from '../src/glass';
 
@@ -114,7 +115,7 @@ async function fetchcontributors() {
     if (contributorsLoaded) return;
     contributorsLoaded = true;
     try {
-        const response = await fetch('https://tracks.monochrome.st/contributors');
+        const response = await fetch(`${TRACKS_API_BASE_URL}/contributors`);
         if (!response.ok) {
             contributorsLoaded = false;
             return;

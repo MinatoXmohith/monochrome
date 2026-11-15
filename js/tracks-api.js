@@ -5,7 +5,29 @@
  * Public Host: https://tracks.monochrome.st
  */
 
-export const TRACKS_API_BASE_URL = 'https://tracks.monochrome.st';
+export const TRACKS_UPSTREAM_URL = 'https://tracks.monochrome.st';
+
+/**
+ * tracks.monochrome.st only sends CORS headers to an allowlist of origins
+ * (localhost, https://localhost used by the Capacitor Android app, and
+ * Monochrome's own domains). Anywhere else, such as the Vercel deployment,
+ * requests go through the same-origin `/tm` rewrite defined in vercel.json.
+ */
+function resolveTracksBaseUrl() {
+    if (typeof window === 'undefined' || !window.location?.origin) return TRACKS_UPSTREAM_URL;
+    const { hostname, origin } = window.location;
+    const isAllowedOrigin =
+        hostname === 'localhost' || hostname === '127.0.0.1' || /(^|\.)monochrome\.(tf|st)$/.test(hostname);
+    return isAllowedOrigin ? TRACKS_UPSTREAM_URL : `${origin}/tm`;
+}
+
+export const TRACKS_API_BASE_URL = resolveTracksBaseUrl();
+
+/** Points an absolute tracks.monochrome.st URL (e.g. artwork) at the base in use. */
+export function toTracksUrl(url) {
+    if (typeof url !== 'string' || TRACKS_API_BASE_URL === TRACKS_UPSTREAM_URL) return url;
+    return url.startsWith(TRACKS_UPSTREAM_URL) ? TRACKS_API_BASE_URL + url.slice(TRACKS_UPSTREAM_URL.length) : url;
+}
 
 /**
  * Cleans and normalizes string for fuzzy title/artist matching.
@@ -78,7 +100,7 @@ export function normalizeTracksTrack(item) {
     }
 
     const releaseId = item.releaseId ? String(item.releaseId) : '';
-    const artwork = item.artwork || item.cover || '';
+    const artwork = toTracksUrl(item.artwork || item.cover || '');
     const albumTitle = item.albumTitle || item.releaseTitle || (item.release && item.release.title) || '';
 
     const album = {
@@ -167,7 +189,7 @@ export function normalizeTracksRelease(item) {
               })
             : [primaryArtist];
 
-    const artwork = item.artwork || item.cover || '';
+    const artwork = toTracksUrl(item.artwork || item.cover || '');
     const trackCount = item.trackCount || (Array.isArray(item.tracks) ? item.tracks.length : 0);
 
     return {
@@ -201,7 +223,7 @@ export function normalizeTracksArtist(item) {
     if (!item) return null;
     const artistId = String(item.artistId || item.id || '');
     const id = artistId;
-    const picture = item.avatar || item.picture || null;
+    const picture = toTracksUrl(item.avatar || item.picture || null);
     const name = item.displayName || item.name || 'Unknown Artist';
 
     return {
@@ -231,7 +253,8 @@ export function normalizeTracksPlaylist(item) {
     if (!item) return null;
     const playlistId = String(item.playlistId || item.id || '');
     const id = playlistId;
-    const image = typeof item.thumbnail === 'string' && item.thumbnail.startsWith('http') ? item.thumbnail : '';
+    const image =
+        typeof item.thumbnail === 'string' && item.thumbnail.startsWith('http') ? toTracksUrl(item.thumbnail) : '';
 
     return {
         id,

@@ -1,0 +1,11 @@
+{
+    "appId": "com.mkplayer.app",
+    "appName": "MKPlayer",
+    "webDir": "dist",
+    "server": {
+        "androidScheme": "https"
+    },
+    "android": {
+        "backgroundColor": "#000000"
+    }
+}
