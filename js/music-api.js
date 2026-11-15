@@ -516,7 +516,7 @@ export class MusicAPI {
     // Cover/artwork methods
     getCoverUrl(id, size = '320') {
         if (!id) {
-            return 'images/monochrome_logo.svg';
+            return 'images/mkplayer_logo.svg';
         }
         if (typeof id === 'string' && /^(?:https?:|blob:|data:|assets\/)/.test(id)) {
             return id;
@@ -572,7 +572,7 @@ export class MusicAPI {
 
     getArtistPictureUrl(id, size = '320') {
         if (!id) {
-            return 'images/monochrome_logo.svg';
+            return 'images/mkplayer_logo.svg';
         }
         if (typeof id === 'string' && /^(?:https?:|blob:|data:|assets\/)/.test(id)) return id;
         return this.tidalAPI.getArtistPictureUrl(this.stripProviderPrefix(id), size);
