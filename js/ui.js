@@ -3028,45 +3028,12 @@ export class UIRenderer {
             await this.showPage('home');
             await this.setupHomeTabs();
 
-            const welcomeEl = document.getElementById('home-welcome');
-            const contentEl = document.getElementById('home-content');
-
-            const history = await db.getHistory();
-            const favorites = await db.getFavorites('track');
-            const playlists = await db.getPlaylists(true);
-
-            const hasActivity = history.length > 0 || favorites.length > 0 || playlists.length > 0;
-
-            // Always show suggested songs, albums and artists. New listeners get
-            // suggestions seeded from the curated picks (see getStarterSeeds).
-            if (welcomeEl) welcomeEl.style.display = hasActivity ? 'none' : 'block';
-            if (contentEl) contentEl.style.display = 'block';
-
-            const refreshSongsBtn = document.getElementById('refresh-songs-btn');
-            const refreshAlbumsBtn = document.getElementById('refresh-albums-btn');
-            const refreshArtistsBtn = document.getElementById('refresh-artists-btn');
-            const clearRecentBtn = document.getElementById('clear-recent-btn');
-
-            if (refreshSongsBtn) refreshSongsBtn.onclick = () => this.renderHomeSongs(true);
-            if (refreshAlbumsBtn) refreshAlbumsBtn.onclick = () => this.renderHomeAlbums(true);
-            if (refreshArtistsBtn) refreshArtistsBtn.onclick = () => this.renderHomeArtists(true);
-            if (clearRecentBtn)
-                clearRecentBtn.onclick = async () => {
-                    if (confirm('Clear recent activity?')) {
-                        recentActivityManager.clear();
-                        await this.renderHomeRecent();
-                    }
-                };
-
-            await this.renderHomeRecent();
-
-            // Load dynamic sections in parallel with pre-fetched seeds
-            const seeds = await this.getSeeds();
-            await Promise.all([
-                this.renderHomeSongs(false, seeds),
-                this.renderHomeAlbums(false, seeds),
-                this.renderHomeArtists(false, seeds),
-            ]);
+            // The Home tab shows only the Unreleased artist list. Render it once;
+            // the artist data is cached, so returning to Home is instant.
+            const unreleasedEl = document.getElementById('home-unreleased');
+            if (unreleasedEl && unreleasedEl.childElementCount === 0) {
+                await renderUnreleasedTrackerPage(unreleasedEl);
+            }
         } finally {
             this.renderLock = false;
         }

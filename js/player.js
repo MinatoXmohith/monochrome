@@ -191,17 +191,23 @@ export class Player {
 
     async _initShaka() {
         try {
+            // Let images that are already loading finish first so Shaka's download
+            // doesn't compete with them. Lazy images are skipped: off-screen ones
+            // never load until scrolled to, so waiting on them would block playback
+            // forever (e.g. the Unreleased artist grid on Home). The wait is capped.
             const waitForImagesLoading = () => {
-                const images = Array.from(document.images).filter((img) => !img.complete);
+                const images = Array.from(document.images).filter((img) => !img.complete && img.loading !== 'lazy');
                 if (images.length === 0) return Promise.resolve();
-                return Promise.all(
+                const allSettled = Promise.all(
                     images.map(
                         (img) =>
                             new Promise((res) => {
-                                img.onload = img.onerror = res;
+                                img.addEventListener('load', res, { once: true });
+                                img.addEventListener('error', res, { once: true });
                             })
                     )
                 );
+                return Promise.race([allSettled, new Promise((res) => setTimeout(res, 3000))]);
             };
 
             if (document.readyState !== 'complete') {
