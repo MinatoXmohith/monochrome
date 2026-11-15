@@ -520,6 +520,22 @@ class CommandPalette {
                 action: () => this.setTheme('latte'),
             },
             {
+                id: 'theme-glass',
+                group: 'Theme',
+                icon: 'palette',
+                label: 'Theme: Liquid Glass',
+                keywords: ['theme', 'glass', 'liquid', 'translucent', 'dark'],
+                action: () => this.setTheme('glass'),
+            },
+            {
+                id: 'theme-glass-light',
+                group: 'Theme',
+                icon: 'palette',
+                label: 'Theme: Liquid Glass Light',
+                keywords: ['theme', 'glass', 'liquid', 'translucent', 'light'],
+                action: () => this.setTheme('glass-light'),
+            },
+            {
                 id: 'theme-store',
                 group: 'Theme',
                 icon: 'store',

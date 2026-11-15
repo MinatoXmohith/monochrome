@@ -57,6 +57,8 @@ import {
     SVG_RESET,
 } from './icons.js';
 import { HiFiClient } from './HiFi.js';
+import '../src/styles/liquid-glass.css';
+import { initLiquidGlass } from '../src/glass';
 
 // Capture real iOS state before spoofing (needed for background audio)
 if (typeof window !== 'undefined') {
@@ -358,6 +360,7 @@ async function uploadCoverImage(file) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    initLiquidGlass();
     await modernSettings.waitPending();
 
     // Request persistent storage to reduce risk of browser wiping data on updates or cleanup
