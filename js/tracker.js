@@ -758,9 +758,11 @@ export async function renderUnreleasedPage(container) {
         </div>
     `;
 
-    const gridContainer = document.getElementById('unreleased-artists-grid');
-    const searchInput = document.getElementById('unreleased-search-input');
-    const noResults = document.getElementById('unreleased-no-results');
+    // Look up inside this container: the list is rendered on both Home and the
+    // Unreleased page, so page-wide ids would point at the wrong copy.
+    const gridContainer = container.querySelector('#unreleased-artists-grid');
+    const searchInput = container.querySelector('#unreleased-search-input');
+    const noResults = container.querySelector('#unreleased-no-results');
 
     // Store all artist cards for filtering
     let allArtistCards = [];
